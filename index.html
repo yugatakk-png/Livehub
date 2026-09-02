@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LiveHub</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  background: #f7f7f7;
+  color: #222;
+}
+
+button {
+  font-family: inherit;
+}
+
+header {
+  background: white;
+  padding: 18px 20px 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid #eee;
+}
+
+.logo {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 800;
+  color: #e60012;
+  margin-bottom: 18px;
+}
+
+.platforms {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.platform {
+  white-space: nowrap;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  padding-bottom: 8px;
+}
+
+.platform.active {
+  color: #e60012;
+  font-weight: bold;
+  border-bottom: 3px solid #e60012;
+}
+
+main {
+  padding: 25px 16px 100px;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 0 18px;
+}
+
+.section-title h2 {
+  margin: 0;
+  color: #e60012;
+  font-size: 28px;
+  letter-spacing: 1px;
+}
+
+.section-title button {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0,0,0,.08);
+  cursor: pointer;
+  transition: transform .2s;
+}
+
+.card:active {
+  transform: scale(.97);
+}
+
+.thumbnail {
+  height: 130px;
+  background: linear-gradient(135deg, #eeeeee, #cccccc);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+}
+
+.live {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #e60012;
+  color: white;
+  font-weight: bold;
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.card-content {
+  padding: 13px;
+}
+
+.name {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.title {
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 40px;
+  color: #444;
+}
+
+.info {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #777;
+  display: flex;
+  justify-content: space-between;
+}
+
+.upcoming {
+  margin-top: 45px;
+}
+
+.time {
+  color: #e60012;
+  font-weight: bold;
+  margin-bottom: 7px;
+  font-size: 13px;
+}
+
+.search-box {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 15px;
+  font-size: 17px;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+.search-box:focus {
+  border-color: #e60012;
+}
+
+.search-result {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-button,
+.remove-button {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 13px;
+  cursor: pointer;
+}
+
+.add-button {
+  background: #e60012;
+  color: white;
+}
+
+.remove-button {
+  background: #eee;
+  color: #e60012;
+}
+
+.empty {
+  text-align: center;
+  color: #888;
+  padding: 50px 20px;
+}
+
+.notice {
+  background: white;
+  border-radius: 15px;
+  padding: 17px;
+  margin-bottom: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.05);
+}
+
+.settings-item {
+  background: white;
+  padding: 18px;
+  border-radius: 15px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 75px;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 20;
+}
+
+.nav-item {
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  cursor: pointer;
+  flex: 1;
+}
+
+.nav-item .icon {
+  font-size: 25px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.nav-item.active {
+  color: #e60012;
+  font-weight: bold;
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .thumbnail {
+    height: 160px;
+  }
+
+  main {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">📡 LiveHub</div>
+
+<div class="platforms" id="platformTabs">
+  <div class="platform active" data-platform="すべて">すべて</div>
+  <div class="platform" data-platform="YouTube">YouTube</div>
+  <div class="platform" data-platform="Twitch">Twitch</div>
+  <div class="platform" data-platform="ツイキャス">ツイキャス</div>
+  <div class="platform" data-platform="TikTok LIVE">TikTok LIVE</div>
+  <div class="platform" data-platform="Instagram">Instagram</div>
+</div>
+
+</header>
+
+<main>
+
+<!-- ホーム -->
+<div class="page active" id="homePage">
+
+  <div class="section-title">
+    <h2>🔴 LIVE NOW</h2>
+    <button onclick="showAll('live')">すべて見る ›</button>
+  </div>
+
+  <div class="grid" id="liveGrid"></div>
+
+  <div class="upcoming">
+
+    <div class="section-title">
+      <h2>📅 UPCOMING</h2>
+      <button onclick="showAll('upcoming')">すべて見る ›</button>
+    </div>
+
+    <div class="grid" id="upcomingGrid"></div>
+
+  </div>
+
+</div>
+
+<!-- 検索 -->
+<div class="page" id="searchPage">
+
+  <div class="section-title">
+    <h2>🔍 検索</h2>
+  </div>
+
+  <input
+    class="search-box"
+    id="searchInput"
+    placeholder="配信者の名前を検索"
+    oninput="searchCreators()"
+  >
+
+  <div id="searchResults"></div>
+
+</div>
+
+<!-- 登録中 -->
+<div class="page" id="followingPage">
+
+  <div class="section-title">
+    <h2>☆ 登録中</h2>
+  </div>
+
+  <div id="followingList"></div>
+
+</div>
+
+<!-- 通知 -->
+<div class="page" id="notificationPage">
+
+  <div class="section-title">
+    <h2>🔔 通知</h2>
+  </div>
+
+  <div class="notice">
+    🔴 配信者がライブを開始しました
+  </div>
+
+  <div class="notice">
+    📅 明日の配信予定があります
+  </div>
+
+</div>
+
+<!-- 設定 -->
+<div class="page" id="settingsPage">
+
+  <div class="section-title">
+    <h2>⚙️ 設定</h2>
+  </div>
+
+  <div class="settings-item" onclick="alert('LiveHub v1.0')">
+    ℹ️ アプリについて
+  </div>
+
+  <div class="settings-item" onclick="alert('通知設定は今後追加予定です')">
+    🔔 通知設定
+  </div>
+
+  <div class="settings-item" onclick="clearFollowing()">
+    🗑️ 登録データをすべて削除
+  </div>
+
+</div>
+
+<!-- 全一覧 -->
+<div class="page" id="allPage">
+
+  <div class="section-title">
+    <h2 id="allTitle">一覧</h2>
+    <button onclick="goHome()">戻る</button>
+  </div>
+
+  <div class="grid" id="allGrid"></div>
+
+</div>
+
+</main>
+
+<nav class="bottom-nav">
+
+<div class="nav-item active" data-page="homePage">
+  <span class="icon">⌂</span>
+  ホーム
+</div>
+
+<div class="nav-item" data-page="searchPage">
+  <span class="icon">⌕</span>
+  検索
+</div>
+
+<div class="nav-item" data-page="followingPage">
+  <span class="icon">☆</span>
+  登録中
+</div>
+
+<div class="nav-item" data-page="notificationPage">
+  <span class="icon">♧</span>
+  通知
+</div>
+
+<div class="nav-item" data-page="settingsPage">
+  <span class="icon">⚙</span>
+  設定
+</div>
+
+</nav>
+
+<script>
+
+const liveData = [
+  {
+    name: "HIKAKIN",
+    title: "重大発表します。",
+    platform: "YouTube",
+    viewers: "38.2万",
+    emoji: "🎥",
+    url: "https://www.youtube.com/"
+  },
+  {
+    name: "ゲーム配信者",
+    title: "新作ゲームをプレイ中！",
+    platform: "Twitch",
+    viewers: "2.1万",
+    emoji: "🎮",
+    url: "https://www.twitch.tv/"
+  },
+  {
+    name: "雑談チャンネル",
+    title: "夜のまったり雑談配信",
+    platform: "ツイキャス",
+    viewers: "1.3万",
+    emoji: "🎤",
+    url: "https://twitcasting.tv/"
+  },
+  {
+    name: "ゲーム実況",
+    title: "ランクマッチ挑戦中！",
+    platform: "TikTok LIVE",
+    viewers: "8,245",
+    emoji: "🎮",
+    url: "https://www.tiktok.com/"
+  }
+];
+
+const upcomingData = [
+  {
+    name: "配信者A",
+    title: "新作ゲーム配信！",
+    platform: "YouTube",
+    time: "今日 23:00",
+    emoji: "🎬"
+  },
+  {
+    name: "配信者B",
+    title: "参加型ゲーム配信！",
+    platform: "Twitch",
+    time: "明日 20:00",
+    emoji: "🎮"
+  },
+  {
+    name: "配信者C",
+    title: "雑談＆質問コーナー",
+    platform: "ツイキャス",
+    time: "9/4 19:30",
+    emoji: "🎤"
+  },
+  {
+    name: "配信者D",
+    title: "メンバー限定配信",
+    platform: "YouTube",
+    time: "9/5 21:00",
+    emoji: "🎥"
+  }
+];
+
+const creators = [
+  { name: "HIKAKIN", platform: "YouTube", emoji: "🎥" },
+  { name: "ゲーム配信者", platform: "Twitch", emoji: "🎮" },
+  { name: "雑談チャンネル", platform: "ツイキャス", emoji: "🎤" },
+  { name: "ゲーム実況", platform: "TikTok LIVE", emoji: "🎮" },
+  { name: "クリエイター", platform: "Instagram", emoji: "📸" }
+];
+
+let following =
+  JSON.parse(localStorage.getItem("livehubFollowing")) || [];
+
+let selectedPlatform = "すべて";
+
+function renderHome() {
+
+  const liveGrid = document.getElementById("liveGrid");
+  const upcomingGrid = document.getElementById("upcomingGrid");
+
+  const liveFiltered =
+    selectedPlatform === "すべて"
+      ? liveData
+      : liveData.filter(x => x.platform === selectedPlatform);
+
+  const upcomingFiltered =
+    selectedPlatform === "すべて"
+      ? upcomingData
+      : upcomingData.filter(x => x.platform === selectedPlatform);
+
+  liveGrid.innerHTML =
+    liveFiltered.length
+      ? liveFiltered.slice(0, 4).map(createLiveCard).join("")
+      : '<div class="empty">このサービスの配信はありません</div>';
+
+  upcomingGrid.innerHTML =
+    upcomingFiltered.length
+      ? upcomingFiltered.slice(0, 4).map(createUpcomingCard).join("")
+      : '<div class="empty">配信予定はありません</div>';
+}
+
+function createLiveCard(item) {
+  return `
+  <div class="card" onclick="openStream('${item.url}')">
+    <div class="thumbnail">
+      ${item.emoji}
+      <div class="live">LIVE</div>
+    </div>
+
+    <div class="card-content">
+      <div class="name">${item.name}</div>
+      <div class="title">${item.title}</div>
+
+      <div class="info">
+        <span>${item.platform}</span>
+        <span>👤 ${item.viewers}</span>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function createUpcomingCard(item) {
+  return `
+  <div class="card" onclick="alert('${item.name} の配信予定です')">
+    <div class="thumbnail">${item.emoji}</div>
+
+    <div class="card-content">
+      <div class="time">${item.time}</div>
+      <div class="name">${item.name}</div>
+      <div class="title">${item.title}</div>
+
+      <div class="info">
+        <span>${item.platform}</span>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function openStream(url) {
+  window.location.href = url;
+}
+
+document.querySelectorAll(".platform").forEach(tab => {
+
+  tab.addEventListener("click", () => {
+
+    selectedPlatform = tab.dataset.platform;
+
+    document.querySelectorAll(".platform")
+      .forEach(x => x.classList.remove("active"));
+
+    tab.classList.add("active");
+
+    renderHome();
+
+  });
+
+});
+
+document.querySelectorAll(".nav-item").forEach(item => {
+
+  item.addEventListener("click", () => {
+
+    const page = item.dataset.page;
+
+    showPage(page);
+
+  });
+
+});
+
+function showPage(pageId) {
+
+  document.querySelectorAll(".page")
+    .forEach(page => page.classList.remove("active"));
+
+  document.getElementById(pageId)
+    .classList.add("active");
+
+  document.querySelectorAll(".nav-item")
+    .forEach(item => item.classList.remove("active"));
+
+  const nav =
+    document.querySelector(`[data-page="${pageId}"]`);
+
+  if (nav) nav.classList.add("active");
+
+  if (pageId === "followingPage") {
+    renderFollowing();
+  }
+
+}
+
+function goHome() {
+  showPage("homePage");
+}
+
+function showAll(type) {
+
+  showPage("allPage");
+
+  const grid = document.getElementById("allGrid");
+  const title = document.getElementById("allTitle");
+
+  if (type === "live") {
+
+    title.textContent = "🔴 LIVE NOW";
+
+    grid.innerHTML =
+      liveData.map(createLiveCard).join("");
+
+  } else {
+
+    title.textContent = "📅 UPCOMING";
+
+    grid.innerHTML =
+      upcomingData.map(createUpcomingCard).join("");
+
+  }
+
+}
+
+function searchCreators() {
+
+  const text =
+    document.getElementById("searchInput")
+      .value
+      .trim()
+      .toLowerCase();
+
+  const results =
+    document.getElementById("searchResults");
+
+  if (!text) {
+    results.innerHTML =
+      '<div class="empty">名前を入力して検索しよう</div>';
+    return;
+  }
+
+  const filtered =
+    creators.filter(
+      creator =>
+        creator.name.toLowerCase().includes(text) ||
+        creator.platform.toLowerCase().includes(text)
+    );
+
+  if (!filtered.length) {
+    results.innerHTML =
+      '<div class="empty">見つかりませんでした</div>';
+    return;
+  }
+
+  results.innerHTML =
+    filtered.map(creator => {
+
+      const alreadyFollowing =
+        following.some(
+          x =>
+            x.name === creator.name &&
+            x.platform === creator.platform
+        );
+
+      return `
+      <div class="search-result">
+
+        <div>
+          <strong>${creator.emoji} ${creator.name}</strong>
+          <br>
+          <small>${creator.platform}</small>
+        </div>
+
+        <button
+          class="add-button"
+          onclick="addFollowing(
+            '${creator.name}',
+            '${creator.platform}',
+            '${creator.emoji}'
+          )"
+        >
+          ${alreadyFollowing ? "登録済み" : "＋ 登録"}
+        </button>
+
+      </div>
+      `;
+
+    }).join("");
+
+}
+
+function addFollowing(name, platform, emoji) {
+
+  const exists =
+    following.some(
+      x =>
+        x.name === name &&
+        x.platform === platform
+    );
+
+  if (!exists) {
+
+    following.push({
+      name,
+      platform,
+      emoji
+    });
+
+    localStorage.setItem(
+      "livehubFollowing",
+      JSON.stringify(following)
+    );
+
+    alert(name + " を登録しました！");
+
+  }
+
+  searchCreators();
+
+}
+
+function renderFollowing() {
+
+  const list =
+    document.getElementById("followingList");
+
+  if (!following.length) {
+
+    list.innerHTML =
+      '<div class="empty">まだ誰も登録していません。検索から追加しよう！</div>';
+
+    return;
+
+  }
+
+  list.innerHTML =
+    following.map((creator, index) => `
+      <div class="search-result">
+
+        <div>
+          <strong>
+            ${creator.emoji} ${creator.name}
+          </strong>
+          <br>
+          <small>${creator.platform}</small>
+        </div>
+
+        <button
+          class="remove-button"
+          onclick="removeFollowing(${index})"
+        >
+          削除
+        </button>
+
+      </div>
+    `).join("");
+
+}
+
+function removeFollowing(index) {
+
+  following.splice(index, 1);
+
+  localStorage.setItem(
+    "livehubFollowing",
+    JSON.stringify(following)
+  );
+
+  renderFollowing();
+
+}
+
+function clearFollowing() {
+
+  if (
+    confirm(
+      "登録した配信者をすべて削除しますか？"
+    )
+  ) {
+
+    following = [];
+
+    localStorage.removeItem(
+      "livehubFollowing"
+    );
+
+    alert("すべて削除しました");
+
+  }
+
+}
+
+renderHome();
+
+</script>
+
+</body>
+</html>
