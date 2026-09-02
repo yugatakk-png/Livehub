@@ -433,6 +433,12 @@ const response = await fetch(url);
 
 const data = await response.json();
 
+if (data.error) {
+  console.error(data.error);
+  result.innerHTML = "APIエラー: " + data.error.message;
+  return;
+}
+
 
 if (!data.items || data.items.length === 0) {
 
