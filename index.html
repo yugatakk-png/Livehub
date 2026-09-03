@@ -746,11 +746,461 @@ result.innerHTML =
    Twitch検索
 ========================= */
 
-function searchTwitch() {
+検索機能は準備中です。
+
+</div>
+
+`;
+
+}
+
+
+/* =========================
+   ツイキャス検索
+========================= */
+
+function searchTwitcasting() {
 
 document.getElementById("searchResult")
 .innerHTML = `
 
 <div class="empty">
 
-Twitch
+ツイキャス検索機能は準備中です。
+
+</div>
+
+`;
+
+}
+
+
+/* =========================
+   登録・解除
+========================= */
+
+function toggleFollowing(
+channelId,
+channelName,
+thumbnail,
+platform
+) {
+
+let following =
+getFollowing();
+
+
+const exists =
+following.some(
+item =>
+item.id === channelId &&
+item.platform === platform
+);
+
+
+if (exists) {
+
+following =
+following.filter(
+item =>
+!(
+item.id === channelId &&
+item.platform === platform
+)
+);
+
+} else {
+
+following.push({
+
+id: channelId,
+name: channelName,
+thumbnail: thumbnail,
+platform: platform
+
+});
+
+}
+
+
+saveFollowing(following);
+
+
+/* 検索結果を更新 */
+
+searchCurrentPlatform();
+
+}
+
+
+/* =========================
+   登録中一覧
+========================= */
+
+function loadFollowing() {
+
+const list =
+document.getElementById(
+"followingList"
+);
+
+const following =
+getFollowing();
+
+
+if (following.length === 0) {
+
+list.innerHTML = `
+
+<div class="empty">
+
+まだ誰も登録していません。<br>
+検索から好きな配信者を登録しよう！
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+list.innerHTML = "";
+
+
+following.forEach(channel => {
+
+const div =
+document.createElement("div");
+
+div.className =
+"following-channel";
+
+
+let platformName = "";
+
+if (channel.platform === "youtube") {
+platformName = "▶ YouTube";
+}
+
+if (channel.platform === "twitch") {
+platformName = "🟣 Twitch";
+}
+
+if (channel.platform === "twitcasting") {
+platformName = "🔵 ツイキャス";
+}
+
+
+div.innerHTML = `
+
+<img src="${channel.thumbnail}">
+
+<div class="following-info">
+
+<div class="channel-name">
+${channel.name}
+</div>
+
+<div class="channel-title">
+${platformName}
+</div>
+
+</div>
+
+<button
+class="remove-button"
+onclick="removeFollowing(
+'${channel.id}',
+'${channel.platform}'
+)"
+>
+
+解除
+
+</button>
+
+`;
+
+
+list.appendChild(div);
+
+});
+
+}
+
+
+/* =========================
+   登録解除
+========================= */
+
+function removeFollowing(
+channelId,
+platform
+) {
+
+let following =
+getFollowing();
+
+
+following =
+following.filter(
+item =>
+!(
+item.id === channelId &&
+item.platform === platform
+)
+);
+
+
+saveFollowing(following);
+
+
+loadFollowing();
+
+
+loadLiveStreams();
+
+}
+
+
+/* =========================
+   YouTubeライブ取得
+========================= */
+
+async function loadLiveStreams() {
+
+const grid =
+document.getElementById(
+"liveGrid"
+);
+
+
+const following =
+getFollowing();
+
+
+const youtubeFollowing =
+following.filter(
+channel =>
+channel.platform === "youtube"
+);
+
+
+if (youtubeFollowing.length === 0) {
+
+grid.innerHTML = `
+
+<div class="empty">
+
+登録した配信者はいません。<br>
+検索から配信者を登録してください！
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+grid.innerHTML =
+"配信状況を確認中...";
+
+
+try {
+
+let liveStreams = [];
+
+
+for (
+const channel of youtubeFollowing
+) {
+
+const url =
+"https://www.googleapis.com/youtube/v3/search"
++ "?part=snippet"
++ "&channelId="
++ channel.id
++ "&eventType=live"
++ "&type=video"
++ "&maxResults=5"
++ "&key="
++ YOUTUBE_API_KEY;
+
+
+const response =
+await fetch(url);
+
+
+const data =
+await response.json();
+
+
+if (
+data.items &&
+data.items.length > 0
+) {
+
+data.items.forEach(video => {
+
+liveStreams.push({
+
+channelName:
+channel.name,
+
+videoTitle:
+video.snippet.title,
+
+thumbnail:
+video.snippet.thumbnails.medium.url,
+
+videoId:
+video.id.videoId,
+
+platform:
+"youtube"
+
+});
+
+});
+
+}
+
+}
+
+
+if (
+liveStreams.length === 0
+) {
+
+grid.innerHTML = `
+
+<div class="empty">
+
+現在ライブ配信中の<br>
+登録チャンネルはいません
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+grid.innerHTML = "";
+
+
+liveStreams.forEach(stream => {
+
+const div =
+document.createElement("div");
+
+div.className =
+"card";
+
+
+div.innerHTML = `
+
+<div class="thumbnail">
+
+<img
+src="${stream.thumbnail}"
+>
+
+<div class="live">
+LIVE
+</div>
+
+</div>
+
+
+<div class="card-content">
+
+<div class="name">
+${stream.channelName}
+</div>
+
+<div class="title">
+${stream.videoTitle}
+</div>
+
+<div class="info">
+▶ YouTube
+</div>
+
+</div>
+
+`;
+
+
+div.onclick = function() {
+
+window.open(
+"https://www.youtube.com/watch?v="
++ stream.videoId,
+"_blank"
+);
+
+};
+
+
+grid.appendChild(div);
+
+});
+
+
+} catch (error) {
+
+console.error(error);
+
+grid.innerHTML = `
+
+<div class="empty">
+
+配信状況を取得できませんでした
+
+</div>
+
+`;
+
+}
+
+}
+
+
+/* =========================
+   Enterキー検索
+========================= */
+
+document
+.getElementById("searchInput")
+.addEventListener(
+"keydown",
+function(event) {
+
+if (
+event.key === "Enter"
+) {
+
+searchCurrentPlatform();
+
+}
+
+}
+);
+
+
+/* 最初にホームを更新 */
+
+loadLiveStreams();
+
+
+</script>
+
+</body>
+</html>
