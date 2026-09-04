@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LiveHub</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  background:#f7f7f7;
+  color:#222;
+}
+
+header{
+  background:#fff;
+  padding:18px 20px 10px;
+  position:sticky;
+  top:0;
+  z-index:10;
+  border-bottom:1px solid #eee;
+}
+
+.logo{
+  text-align:center;
+  font-size:30px;
+  font-weight:800;
+  color:#e60012;
+  margin-bottom:18px;
+}
+
+.platforms{
+  display:flex;
+  gap:24px;
+  overflow-x:auto;
+  padding-bottom:10px;
+}
+
+.platform{
+  white-space:nowrap;
+  color:#555;
+  font-size:14px;
+  cursor:pointer;
+  padding-bottom:8px;
+}
+
+.platform.active{
+  color:#e60012;
+  font-weight:bold;
+  border-bottom:3px solid #e60012;
+}
+
+main{
+  padding:25px 16px 100px;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+.section-title h2{
+  color:#e60012;
+}
+
+.search-box{
+  display:flex;
+  gap:8px;
+  margin:20px 0;
+}
+
+.search-box input{
+  flex:1;
+  padding:14px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  font-size:16px;
+  min-width:0;
+}
+
+button{
+  border:0;
+  border-radius:10px;
+  padding:10px 14px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.search-box button,
+.open-button,
+.register-button,
+.live-button{
+  background:#e60012;
+  color:#fff;
+}
+
+.register-button.registered{
+  background:#777;
+}
+
+.remove-button{
+  background:#eee;
+}
+
+.channel,
+.following-channel{
+  background:#fff;
+  padding:14px;
+  border-radius:15px;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 3px 10px rgba(0,0,0,.07);
+}
+
+.channel img,
+.following-channel img{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  object-fit:cover;
+  flex-shrink:0;
+}
+
+.channel-info,
+.following-info{
+  flex:1;
+  min-width:0;
+}
+
+.channel-name{
+  font-weight:bold;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.channel-title{
+  color:#777;
+  font-size:12px;
+  margin-top:5px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:14px;
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.thumbnail{
+  height:130px;
+  position:relative;
+}
+
+.thumbnail img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.live{
+  position:absolute;
+  top:8px;
+  left:8px;
+  background:#e60012;
+  color:#fff;
+  padding:5px 8px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.card-content{
+  padding:12px;
+}
+
+.name{
+  font-weight:bold;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.title{
+  font-size:13px;
+  margin-top:7px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.info{
+  color:#777;
+  font-size:12px;
+  margin-top:8px;
+}
+
+.empty{
+  text-align:center;
+  color:#777;
+  padding:40px 10px;
+}
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:75px;
+  background:#fff;
+  border-top:1px solid #ddd;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:20;
+}
+
+.nav-item{
+  text-align:center;
+  font-size:11px;
+  color:#666;
+  cursor:pointer;
+}
+
+.nav-item .icon{
+  display:block;
+  font-size:24px;
+}
+
+.nav-item.active{
+  color:#e60012;
+  font-weight:bold;
+}
+
+.setting-box{
+  background:#fff;
+  padding:18px;
+  border-radius:15px;
+  box-shadow:0 3px 10px rgba(0,0,0,.07);
+}
+
+.setting-box input{
+  width:100%;
+  padding:13px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  margin:12px 0;
+  font-size:15px;
+}
+
+.setting-box button{
+  background:#e60012;
+  color:#fff;
+}
+
+.setting-box .danger{
+  background:#777;
+  margin-left:8px;
+}
+
+.status{
+  margin-top:12px;
+  font-size:13px;
+}
+
+.live-button{
+  margin-bottom:15px;
+}
+
+@media(max-width:600px){
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .channel{
+    flex-wrap:wrap;
+  }
+
+  .channel-info{
+    min-width:calc(100% - 75px);
+  }
+
+  .register-button,
+  .open-button{
+    flex:1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">📡 LiveHub</div>
+
+<div class="platforms">
+
+<div class="platform active"
+onclick="setPlatform('all',this)">
+すべて
+</div>
+
+<div class="platform"
+onclick="setPlatform('youtube',this)">
+YouTube
+</div>
+
+<div class="platform"
+onclick="setPlatform('twitch',this)">
+Twitch
+</div>
+
+<div class="platform"
+onclick="setPlatform('twitcasting',this)">
+ツイキャス
+</div>
+
+</div>
+
+</header>
+
+<main>
+
+<!-- ホーム -->
+
+<div id="homePage" class="page active">
+
+<div class="section-title">
+<h2>🔴 LIVE NOW</h2>
+</div>
+
+<button
+class="live-button"
+onclick="loadLiveStreams()">
+🔄 ライブ状況を更新
+</button>
+
+<div id="liveGrid" class="grid">
+
+<div class="empty">
+登録した配信者はいません
+</div>
+
+</div>
+
+</div>
+
+
+<!-- 検索 -->
+
+<div id="searchPage" class="page">
+
+<div class="section-title">
+<h2>🔍 チャンネル検索</h2>
+</div>
+
+<div class="search-box">
+
+<input
+id="searchInput"
+type="text"
+placeholder="配信者・チャンネル名を検索">
+
+<button onclick="searchCurrentPlatform()">
+検索
+</button>
+
+</div>
+
+<div id="searchResult">
+検索したい名前を入力してください
+</div>
+
+</div>
+
+
+<!-- 登録中 -->
+
+<div id="followingPage" class="page">
+
+<div class="section-title">
+<h2>☆ 登録中</h2>
+</div>
+
+<div id="followingList"></div>
+
+</div>
+
+
+<!-- 通知 -->
+
+<div id="notificationPage" class="page">
+
+<div class="section-title">
+<h2>♧ 通知</h2>
+</div>
+
+<p>通知はありません。</p>
+
+</div>
+
+
+<!-- 設定 -->
+
+<div id="settingsPage" class="page">
+
+<div class="section-title">
+<h2>⚙ 設定</h2>
+</div>
+
+<div class="setting-box">
+
+<b>YouTube APIキー</b>
+
+<input
+id="apiKeyInput"
+type="password"
+placeholder="YouTube APIキーを入力">
+
+<button onclick="saveApiKey()">
+APIキーを保存
+</button>
+
+<button
+class="danger"
+onclick="deleteApiKey()">
+削除
+</button>
+
+<div id="apiStatus" class="status"></div>
+
+</div>
+
+</div>
+
+</main>
+
+
+<!-- 下部メニュー -->
+
+<nav class="bottom-nav">
+
+<div
+class="nav-item active"
+onclick="showPage('homePage',this)">
+
+<span class="icon">⌂</span>
+ホーム
+
+</div>
+
+<div
+class="nav-item"
+onclick="showPage('searchPage',this)">
+
+<span class="icon">⌕</span>
+検索
+
+</div>
+
+<div
+class="nav-item"
+onclick="showPage('followingPage',this)">
+
+<span class="icon">☆</span>
+登録中
+
+</div>
+
+<div
+class="nav-item"
+onclick="showPage('notificationPage',this)">
+
+<span class="icon">♧</span>
+通知
+
+</div>
+
+<div
+class="nav-item"
+onclick="showPage('settingsPage',this)">
+
+<span class="icon">⚙</span>
+設定
+
+</div>
+
+</nav>
+
+
+<script>
+
+/* ================================
+   APIキー
+================================ */
+
+let YOUTUBE_API_KEY =
+localStorage.getItem("livehub_youtube_api_key") || "";
+
+
+/* ================================
+   現在のプラットフォーム
+================================ */
+
+let currentPlatform = "all";
+
+
+/* ================================
+   APIキー確認
+================================ */
+
+function hasApiKey(){
+
+  return YOUTUBE_API_KEY.trim() !== "";
+
+}
+
+
+/* ================================
+   登録データ取得
+================================ */
+
+function getFollowing(){
+
+  try{
+
+    return JSON.parse(
+      localStorage.getItem(
+        "livehub_following"
+      ) || "[]"
+    );
+
+  }catch(error){
+
+    return [];
+
+  }
+
+}
+
+
+/* ================================
+   登録データ保存
+================================ */
+
+function saveFollowing(data){
+
+  localStorage.setItem(
+    "livehub_following",
+    JSON.stringify(data)
+  );
+
+}
+
+
+/* ================================
+   HTML安全処理
+================================ */
+
+function escapeHtml(text){
+
+  return String(text)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* ================================
+   ページ切り替え
+================================ */
+
+function showPage(pageId,element){
+
+  document
+    .querySelectorAll(".page")
+    .forEach(function(page){
+
+      page.classList.remove("active");
+
+    });
+
+  document
+    .getElementById(pageId)
+    .classList.add("active");
+
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(function(item){
+
+      item.classList.remove("active");
+
+    });
+
+  element.classList.add("active");
+
+
+  if(pageId === "followingPage"){
+
+    loadFollowing();
+
+  }
+
+
+  if(pageId === "settingsPage"){
+
+    updateApiStatus();
+
+  }
+
+
+  if(pageId === "homePage"){
+
+    loadLiveStreams();
+
+  }
+
+}
+
+
+/* ================================
+   プラットフォーム切り替え
+================================ */
+
+function setPlatform(platform,element){
+
+  currentPlatform = platform;
+
+
+  document
+    .querySelectorAll(".platform")
+    .forEach(function(item){
+
+      item.classList.remove("active");
+
+    });
+
+
+  element.classList.add("active");
+
+
+  const result =
+    document.getElementById(
+      "searchResult"
+    );
+
+
+  if(platform === "all"){
+
+    result.innerHTML =
+      "YouTube・Twitch・ツイキャスを検索します";
+
+  }
+
+
+  if(platform === "youtube"){
+
+    result.innerHTML =
+      "YouTubeを検索します";
+
+  }
+
+
+  if(platform === "twitch"){
+
+    result.innerHTML =
+      "Twitchを検索します";
+
+  }
+
+
+  if(platform === "twitcasting"){
+
+    result.innerHTML =
+      "ツイキャスを検索します";
+
+  }
+
+}
+
+
+/* ================================
+   APIキー保存
+================================ */
+
+function saveApiKey(){
+
+  const input =
+    document.getElementById(
+      "apiKeyInput"
+    );
+
+  const key =
+    input.value.trim();
+
+
+  if(!key){
+
+    alert("APIキーを入力してください");
+
+    return;
+
+  }
+
+
+  YOUTUBE_API_KEY = key;
+
+
+  localStorage.setItem(
+    "livehub_youtube_api_key",
+    key
+  );
+
+
+  input.value = "";
+
+
+  updateApiStatus();
+
+
+  alert("APIキーを保存しました");
+
+}
+
+
+/* ================================
+   APIキー削除
+================================ */
+
+function deleteApiKey(){
+
+  YOUTUBE_API_KEY = "";
+
+
+  localStorage.removeItem(
+    "livehub_youtube_api_key"
+  );
+
+
+  document.getElementById(
+    "apiKeyInput"
+  ).value = "";
+
+
+  updateApiStatus();
+
+}
+
+
+/* ================================
+   APIキー状態
+================================ */
+
+function updateApiStatus(){
+
+  const status =
+    document.getElementById(
+      "apiStatus"
+    );
+
+
+  if(hasApiKey()){
+
+    status.innerHTML =
+      "✅ YouTube APIキーが設定されています";
+
+  }else{
+
+    status.innerHTML =
+      "⚠️ YouTube APIキーは未設定です";
+
+  }
+
+}
+
+
+/* ================================
+   検索
+================================ */
+
+function searchCurrentPlatform(){
+
+  if(
+    currentPlatform === "youtube" ||
+    currentPlatform === "all"
+  ){
+
+    searchYouTube();
+
+    return;
+
+  }
+
+
+  const result =
+    document.getElementById(
+      "searchResult"
+    );
+
+
+  if(currentPlatform === "twitch"){
+
+    result.innerHTML =
+      '<div class="empty">' +
+      'Twitch APIはまだ接続されていません' +
+      '</div>';
+
+    return;
+
+  }
+
+
+  if(currentPlatform === "twitcasting"){
+
+    result.innerHTML =
+      '<div class="empty">' +
+      'ツイキャスAPIはまだ接続されていません' +
+      '</div>';
+
+    return;
+
+  }
+
+}
+
+
+/* ================================
+   YouTube検索
+================================ */
+
+async function searchYouTube(){
+
+  const query =
+    document
+      .getElementById("searchInput")
+      .value
+      .trim();
+
+
+  const result =
+    document.getElementById(
+      "searchResult"
+    );
+
+
+  if(!query){
+
+    result.innerHTML =
+      "検索したい名前を入力してください";
+
+    return;
+
+  }
+
+
+  if(!hasApiKey()){
+
+    result.innerHTML =
+      "⚠️ 設定からYouTube APIキーを入力してください";
+
+    return;
+
+  }
+
+
+  result.innerHTML =
+    "検索中...";
+
+
+  try{
+
+    const url =
+      "https://www.googleapis.com/youtube/v3/search" +
+      "?part=snippet" +
+      "&type=channel" +
+      "&maxResults=10" +
+      "&q=" +
+      encodeURIComponent(query) +
+      "&key=" +
+      encodeURIComponent(
+        YOUTUBE_API_KEY
+      );
+
+
+    const response =
+      await fetch(url);
+
+
+    const data =
+      await response.json();
+
+
+    if(data.error){
+
+      if(
+        data.error.errors &&
+        data.error.errors.some(function(e){
+
+          return (
+            e.reason === "quotaExceeded" ||
+            e.reason === "dailyLimitExceeded"
+          );
+
+        })
+      ){
+
+        result.innerHTML =
+          '<div class="empty">' +
+          '⚠️ YouTube APIの1日のQuotaを使い切っています。' +
+          '<br><br>' +
+          'Quotaがリセットされるまで検索できません。' +
+          '</div>';
+
+      }else{
+
+        result.innerHTML =
+          "APIエラー: " +
+          escapeHtml(
+            data.error.message
+          );
+
+      }
+
+      return;
+
+    }
+
+
+    if(
+      !data.items ||
+      data.items.length === 0
+    ){
+
+      result.innerHTML =
+        "チャンネルが見つかりませんでした";
+
+      return;
+
+    }
+
+
+    result.innerHTML = "";
+
+
+    const following =
+      getFollowing();
+
+
+    data.items.forEach(function(item){
+
+      const channel =
+        item.snippet;
+
+
+      const channelId =
+        item.id.channelId;
+
+
+      const thumbnail =
+        channel.thumbnails.medium?.url ||
+        channel.thumbnails.default?.url ||
+        "";
+
+
+      const isFollowing =
+        following.some(function(follow){
+
+          return (
+            follow.id === channelId &&
+            follow.platform === "youtube"
+          );
+
+        });
+
+
+      const div =
+        document.createElement("div");
+
+
+      div.className =
+        "channel";
+
+
+      div.innerHTML = `
+
+<img src="${escapeHtml(thumbnail)}">
+
+<div class="channel-info">
+
+<div class="channel-name">
+${escapeHtml(channel.channelTitle)}
+</div>
+
+<div class="channel-title">
+▶ YouTube
+</div>
+
+</div>
+
+<button
+class="register-button ${isFollowing ? "registered" : ""}">
+${isFollowing ? "登録済み" : "登録"}
+</button>
+
+<button class="open-button">
+開く
+</button>
+
+`;
+
+
+      /* 登録ボタン */
+
+      const registerButton =
+        div.querySelector(
+          ".register-button"
+        );
+
+
+      registerButton.onclick =
+        function(){
+
+          toggleFollowing(
+            channelId,
+            channel.channelTitle,
+            thumbnail,
+            "youtube",
+            registerButton
+          );
+
+        };
+
+
+      /* 開くボタン */
+
+      const openButton =
+        div.querySelector(
+          ".open-button"
+        );
+
+
+      openButton.onclick =
+        function(){
+
+          window.open(
+            "https://www.youtube.com/channel/" +
+            encodeURIComponent(channelId),
+            "_blank"
+          );
+
+        };
+
+
+      result.appendChild(div);
+
+    });
+
+
+  }catch(error){
+
+    console.error(error);
+
+    result.innerHTML =
+      "通信エラーが発生しました";
+
+  }
+
+}
+
+
+/* ================================
+   登録・解除
+================================ */
+
+function toggleFollowing(
+  channelId,
+  channelName,
+  thumbnail,
+  platform,
+  button
+){
+
+  let following =
+    getFollowing();
+
+
+  const index =
+    following.findIndex(function(item){
+
+      return (
+        item.id === channelId &&
+        item.platform === platform
+      );
+
+    });
+
+
+  /* すでに登録されている場合 */
+
+  if(index !== -1){
+
+    following.splice(
+      index,
+      1
+    );
+
+
+    button.textContent =
+      "登録";
+
+
+    button.classList.remove(
+      "registered"
+    );
+
+  }
+
+  /* 登録されていない場合 */
+
+  else{
+
+    following.push({
+
+      id: channelId,
+
+      name: channelName,
+
+      thumbnail: thumbnail,
+
+      platform: platform
+
+    });
+
+
+    button.textContent =
+      "登録済み";
+
+
+    button.classList.add(
+      "registered"
+    );
+
+  }
+
+
+  /* 保存 */
+
+  saveFollowing(following);
+
+
+  /* 登録中ページも更新 */
+
+  loadFollowing();
+
+}
+
+
+/* ================================
+   登録中一覧
+================================ */
+
+function loadFollowing(){
+
+  const list =
+    document.getElementById(
+      "followingList"
+    );
+
+
+  const following =
+    getFollowing();
+
+
+  if(following.length === 0){
+
+    list.innerHTML = `
+
+<div class="empty">
+
+まだ誰も登録していません。<br>
+検索から好きな配信者を登録しよう！
+
+</div>
+
+`;
+
+    return;
+
+  }
+
+
+  list.innerHTML = "";
+
+
+  following.forEach(function(channel){
+
+    const div =
+      document.createElement("div");
+
+
+    div.className =
+      "following-channel";
+
+
+    let platformName =
+      "YouTube";
+
+
+    if(channel.platform === "twitch"){
+
+      platformName =
+        "Twitch";
+
+    }
+
+
+    if(channel.platform === "twitcasting"){
+
+      platformName =
+        "ツイキャス";
+
+    }
+
+
+    div.innerHTML = `
+
+<img src="${escapeHtml(channel.thumbnail)}">
+
+<div class="following-info">
+
+<div class="channel-name">
+${escapeHtml(channel.name)}
+</div>
+
+<div class="channel-title">
+▶ ${platformName}
+</div>
+
+</div>
+
+<button class="remove-button">
+解除
+</button>
+
+`;
+
+
+    const removeButton =
+      div.querySelector(
+        ".remove-button"
+      );
+
+
+    removeButton.onclick =
+      function(){
+
+        removeFollowing(
+          channel.id,
+          channel.platform
+        );
+
+      };
+
+
+    list.appendChild(div);
+
+  });
+
+}
+
+
+/* ================================
+   登録解除
+================================ */
+
+function removeFollowing(
+  channelId,
+  platform
+){
+
+  let following =
+    getFollowing();
+
+
+  following =
+    following.filter(function(item){
+
+      return !(
+        item.id === channelId &&
+        item.platform === platform
+      );
+
+    });
+
+
+  saveFollowing(following);
+
+
+  loadFollowing();
+
+
+  /* 検索画面が表示されていたら再検索 */
+
+  const searchInput =
+    document.getElementById(
+      "searchInput"
+    );
+
+
+  if(
+    searchInput.value.trim() &&
+    (
+      currentPlatform === "youtube" ||
+      currentPlatform === "all"
+    )
+  ){
+
+    searchYouTube();
+
+  }
+
+}
+
+
+/* ================================
+   LIVE NOW
+================================ */
+
+async function loadLiveStreams(){
+
+  const grid =
+    document.getElementById(
+      "liveGrid"
+    );
+
+
+  const following =
+    getFollowing();
+
+
+  /* Twitch */
+
+  if(currentPlatform === "twitch"){
+
+    grid.innerHTML = `
+
+<div class="empty">
+
+TwitchのLIVE確認は<br>
+まだAPI接続されていません。
+
+</div>
+
+`;
+
+    return;
+
+  }
+
+
+  /* ツイキャス */
+
+  if(currentPlatform === "twitcasting"){
+
+    grid.innerHTML = `
+
+<div class="empty">
+
+ツイキャスのLIVE確認は<br>
+まだAPI接続されていません。
+
+</div>
+
+`;
+
+    return;
+
+  }
+
+
+  const youtubeFollowing =
+    following.filter(function(channel){
+
+      return channel.platform === "youtube";
+
+    });
+
+
+  if(youtubeFollowing.length === 0){
+
+    grid.innerHTML = `
+
+<div class="empty">
+
+登録したYouTube配信者はいません。<br>
+検索から配信者を登録してください！
+
+</div>
+
+`;
+
+    return;
+
+  }
+
+
+  if(!hasApiKey()){
+
+    grid.innerHTML = `
+
+<div class="empty">
+
+⚠️ YouTube APIキーが設定されていません。<br>
+設定からAPIキーを入力してください。
+
+</div>
+
+`;
+
+    return;
+
+  }
+
+
+  grid.innerHTML =
+    '<div class="empty">配信状況を確認中...</div>';
+
+
+  try{
+
+    let liveStreams = [];
+
+
+    for(
+      const channel of youtubeFollowing
+    ){
+
+      const url =
+        "https://www.googleapis.com/youtube/v3/search" +
+        "?part=snippet" +
+        "&channelId=" +
+        encodeURIComponent(channel.id) +
+        "&eventType=live" +
+        "&type=video" +
+        "&maxResults=1" +
+        "&key=" +
+        encodeURIComponent(
+          YOUTUBE_API_KEY
+        );
+
+
+      const response =
+        await fetch(url);
+
+
+      const data =
+        await response.json();
+
+
+      if(data.error){
+
+        if(
+          data.error.errors &&
+          data.error.errors.some(function(e){
+
+            return (
+              e.reason === "quotaExceeded" ||
+              e.reason === "dailyLimitExceeded"
+            );
+
+          })
+        ){
+
+          grid.innerHTML = `
+
+<div class="empty">
+
+⚠️ YouTube APIの1日のQuotaを使い切っています。
+
+</div>
+
+`;
+
+        }else{
+
+          grid.innerHTML =
+            "APIエラー: " +
+            escapeHtml(
+              data.error.message
+            );
+
+        }
+
+        return;
+
+      }
+
+
+      if(
+        data.items &&
+        data.items.length > 0
+      ){
+
+        const video =
+          data.items[0];
+
+
+        liveStreams.push({
+
+          channelName:
+            channel.name,
+
+          videoTitle:
+            video.snippet.title,
+
+          thumbnail:
+            video.snippet.thumbnails.medium?.url ||
+            video.snippet.thumbnails.default?.url ||
+            "",
+
+          videoId:
+            video.id.videoId
+
+        });
+
+      }
+
+    }
+
+
+    if(liveStreams.length === 0){
+
+      grid.innerHTML = `
+
+<div class="empty">
+
+現在ライブ配信中の<br>
+登録チャンネルはいません。
+
+</div>
+
+`;
+
+      return;
+
+    }
+
+
+    grid.innerHTML = "";
+
+
+    liveStreams.forEach(function(stream){
+
+      const div =
+        document.createElement("div");
+
+
+      div.className =
+        "card";
+
+
+      div.innerHTML = `
+
+<div class="thumbnail">
+
+<img src="${escapeHtml(stream.thumbnail)}">
+
+<div class="live">
+LIVE
+</div>
+
+</div>
+
+<div class="card-content">
+
+<div class="name">
+${escapeHtml(stream.channelName)}
+</div>
+
+<div class="title">
+${escapeHtml(stream.videoTitle)}
+</div>
+
+<div class="info">
+▶ YouTube
+</div>
+
+</div>
+
+`;
+
+
+      div.onclick =
+        function(){
+
+          window.open(
+            "https://www.youtube.com/watch?v=" +
+            encodeURIComponent(
+              stream.videoId
+            ),
+            "_blank"
+          );
+
+        };
+
+
+      grid.appendChild(div);
+
+    });
+
+
+  }catch(error){
+
+    console.error(error);
+
+
+    grid.innerHTML = `
+
+<div class="empty">
+
+配信状況を取得できませんでした。
+
+</div>
+
+`;
+
+  }
+
+}
+
+
+/* ================================
+   Enterで検索
+================================ */
+
+document
+  .getElementById("searchInput")
+  .addEventListener(
+    "keydown",
+    function(event){
+
+      if(event.key === "Enter"){
+
+        searchCurrentPlatform();
+
+      }
+
+    }
+  );
+
+
+/* ================================
+   初期化
+================================ */
+
+updateApiStatus();
+
+</script>
+
+</body>
+</html>
